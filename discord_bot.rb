@@ -70,10 +70,10 @@ end
 
 def create_buttons_for_google(current_item, total_items)
   view = Discordrb::Webhooks::View.new
-  view.row do |r|
-    r.button(emoji: ARROW_LEFT, style: :primary, custom_id: ARROW_LEFT, disabled: current_item.zero?)
-    r.button(emoji: ARROW_RIGHT, style: :primary, custom_id: ARROW_RIGHT, disabled: current_item + 1 == total_items)
-    r.button(emoji: CROSS_MARK, style: :secondary, custom_id: CROSS_MARK)
+  view.row do |row|
+    row.button(emoji: ARROW_LEFT, style: :primary, custom_id: ARROW_LEFT, disabled: current_item.zero?)
+    row.button(emoji: ARROW_RIGHT, style: :primary, custom_id: ARROW_RIGHT, disabled: current_item + 1 == total_items)
+    row.button(emoji: CROSS_MARK, style: :secondary, custom_id: CROSS_MARK)
   end
   view
 end
@@ -108,7 +108,10 @@ bot.command :g do |event, *parameters|
   bot.add_await!(Discordrb::Events::ButtonEvent, timeout: 120) do |reaction_event|
     next false unless reaction_event.message.id == message.id
 
-    next false unless reaction_event.user.id == event.user.id
+    if reaction_event.user.id != event.author.id
+      reaction_event.respond(content: "Only #{event.author.name} can respond to this message!", ephemeral: true)
+      next false
+    end
 
     custom_id = reaction_event.custom_id
     case custom_id

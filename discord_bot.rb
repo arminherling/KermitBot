@@ -163,7 +163,7 @@ def ask_chat_gpt(messages)
   message['content'].strip
 end
 
-bot.command :fact do |event|
+bot.command :fact, description: 'Kermit asks ChatGPT for a random fact.', usage: 'k.fact' do |event|
   event.channel.start_typing
 
   messages = [{ role: 'user', content: 'Tell me a random fact.' }]
@@ -180,7 +180,7 @@ bot.command :fact do |event|
   event.channel.send_message KERMIT_REACTIONS.sample
 end
 
-bot.command :g do |event, *parameters|
+bot.command :g, description: 'Shows the first 10 Google results for a topic.', usage: 'k.g [words to search for]' do |event, *parameters|
   event.channel.start_typing
 
   command_parameter = replace_mentions(parameters.join(' '))

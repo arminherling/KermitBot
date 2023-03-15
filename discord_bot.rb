@@ -87,7 +87,7 @@ bot.command :g do |event, *parameters|
   end
 
   unless event.message.mentions.empty?
-    event.channel.send_message 'Can\' search for discord mentions!'
+    event.channel.send_message 'Can\'t search for discord mentions!'
     event.channel.send_message '<:kermitwtf:1085519892993810482>'
     return nil
   end

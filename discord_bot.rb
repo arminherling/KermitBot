@@ -10,7 +10,43 @@ ARROW_LEFT = '◀'
 ARROW_RIGHT =  '▶'
 CROSS_MARK = '❌'
 
-uri = URI('https://customsearch.googleapis.com/customsearch/v1')
+KERMIT_REACTIONS = [
+  '<:DangKermit:1085642449407459348>',
+  '<:Kermit:1085642451953405992>',
+  '<:KermitBlush:1085642453689835540>',
+  '<:KermitBoss:1085642457934475345>',
+  '<:KermitBruh:1085642460933390356>',
+  '<:KermitCartoon:1085636582268223488>',
+  '<:KermitCartoon2:1085642462569185310>',
+  '<a:KermitDance:1085642466671214722>',
+  '<:KermitDerp:1085642470127312946>',
+  '<:KermitDerp2:1085642472669069413>',
+  '<a:KermitDrink:1085635351130951710>',
+  '<a:KermitFancy:1085635631809577021>',
+  '<:KermitFancyPog:1085642476154527814>',
+  '<:KermitGirl:1085636579093135440>',
+  '<:KermitGod:1085642478499143801>',
+  '<:KermitHeh:1085642480659202229>',
+  '<:KermitHm:1085642483230310470>',
+  '<a:KermitHmpf:1085636151056023552>',
+  '<:KermitHuh:1085642484845125673>',
+  '<a:KermitInfinite:1085642488057966733>',
+  '<:KermitMad:1085642489588887602>',
+  '<:KermitPog:1085642492642328756>',
+  '<:KermitPonder:1085643211093053510>',
+  '<:KermitScared:1085642497017004062>',
+  '<:KermitSmile:1085642498585677944>',
+  '<:KermitStare:1085643212523319336>',
+  '<:KermitSunglasses:1085642502603817070>',
+  '<:KermitTea:1085642505128775761>',
+  '<a:KermitTeeth:1085642508819767327>',
+  '<:KermitTeeth2:1085643214968598718>',
+  '<:KermitTeeth3:1085642512867262494>',
+  '<:KermitThink:1085642515841044510>',
+  '<a:KermitWho:1085642519217459220>',
+  '<:KermitWtf:1085519892993810482>',
+  '<:KermitYawn:1085643216524677210>'
+].freeze
 
 bot = Discordrb::Commands::CommandBot.new token: configatron.discord_token, prefix: ['k.', 'K.']
 
@@ -78,37 +114,101 @@ def create_buttons_for_google(current_item, total_items)
   view
 end
 
+def replace_mentions(message)
+  content = message.content
+  message.mentions.each do |user|
+    content = content.gsub "<@#{user.id}>", user.name.tr(' ', '_')
+  end
+
+  message.role_mentions.each do |role|
+    content = content.gsub "<@&#{role.id}>", role.name.tr(' ', '_')
+  end
+
+  content.gsub! '@everyone', 'everyone'
+  content.gsub! '@here', 'here'
+
+  content
+end
+
+def search_google(query)
+  google_search_url = URI('https://customsearch.googleapis.com/customsearch/v1')
+  google_params = { gl: 'en', cx: configatron.google_cx, key: configatron.google_api, q: query }
+
+  google_search_url.query = URI.encode_www_form(google_params)
+  response = Net::HTTP.get_response(google_search_url)
+  body = JSON.parse(response.body)
+
+  return nil if body.key?('error')
+
+  body
+end
+
+def ask_chat_gpt(messages)
+  chat_gpt_url = URI('https://chatgpt-api.shn.hk/v1/')
+  query_body = { model: 'gpt-3.5-turbo', messages: messages }
+  chat_gpt_header = { 'Content-Type': 'application/json' }
+
+  response = Net::HTTP.post(chat_gpt_url, query_body.to_json, chat_gpt_header)
+  return nil unless response.is_a?(Net::HTTPSuccess)
+
+  body = JSON.parse(response.body)
+  return nil unless body.key? 'choices'
+
+  choices = body['choices']
+  return nil if choices.empty?
+
+  message = choices[0]['message']
+  return nil unless message.key? 'content'
+
+  message['content'].strip
+end
+
+bot.command :fact do |event|
+  event.channel.start_typing
+
+  messages = [{ role: 'user', content: 'Tell me a random fact.' }]
+
+  random_fact = ask_chat_gpt(messages)
+
+  if random_fact.nil?
+    event.channel.send_message 'Hmmm, I can\'t think of one right now.'
+    event.channel.send_message '<:KermitDerp2:1085642472669069413>'
+    return nil
+  end
+
+  event.channel.send_message random_fact
+  event.channel.send_message KERMIT_REACTIONS.sample
+end
+
 bot.command :g do |event, *parameters|
+  event.channel.start_typing
+
   command_parameter = parameters.join(' ')
   if command_parameter.empty?
     event.channel.send_message 'You forgot to type what you want to search for!'
-    event.channel.send_message '<:kermitwtf:1085519892993810482>'
+    event.channel.send_message '<:KermitWtf:1085519892993810482>'
     return nil
   end
 
   unless event.message.mentions.empty?
     event.channel.send_message 'Can\'t search for discord mentions!'
-    event.channel.send_message '<:kermitwtf:1085519892993810482>'
+    event.channel.send_message '<:KermitWtf:1085519892993810482>'
     return nil
   end
 
-  google_params = { gl: 'en', cx: configatron.google_cx, key: configatron.google_api, q: command_parameter }
+  google_result = search_google(command_parameter)
 
-  uri.query = URI.encode_www_form(google_params)
-  response = Net::HTTP.get_response(uri)
-  body = JSON.parse(response.body)
-
-  if body.key?('error')
+  if google_result.nil?
     event.channel.send_message 'Cant search anymore for today, try again tomorrow!'
     return nil
   end
 
-  items = body['items']
+  items = google_result['items']
   current_item = 0
   total_items = items.length
 
   result = items[current_item]
-  formatted_total_results = body['searchInformation']['formattedTotalResults']
+  formatted_total_results = google_result['searchInformation']['formattedTotalResults']
 
   first_item_embed = create_embed_for_result(command_parameter, result, current_item, total_items, formatted_total_results)
   components = create_buttons_for_google(current_item, total_items)

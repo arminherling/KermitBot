@@ -114,14 +114,15 @@ def create_buttons_for_google(current_item, total_items)
   view
 end
 
-def replace_mentions(message)
-  content = message.content
-  message.mentions.each do |user|
-    content = content.gsub "<@#{user.id}>", user.name.tr(' ', '_')
-  end
+def replace_mentions(message, content)
+  unless message.nil?
+    message.mentions.each do |user|
+      content = content.gsub "<@#{user.id}>", user.name.tr(' ', '_')
+    end
 
-  message.role_mentions.each do |role|
-    content = content.gsub "<@&#{role.id}>", role.name.tr(' ', '_')
+    message.role_mentions.each do |role|
+      content = content.gsub "<@&#{role.id}>", role.name.tr(' ', '_')
+    end
   end
 
   content.gsub! '@everyone', 'everyone'
@@ -163,10 +164,14 @@ def ask_chat_gpt(messages)
   message['content'].strip
 end
 
-bot.command :fact, description: 'Kermit asks ChatGPT for a random fact.', usage: 'k.fact' do |event|
+bot.command :fact, description: 'Kermit asks ChatGPT for a random fact.', usage: 'k.fact [Optional topic]' do |event, *parameters|
   event.channel.start_typing
 
-  messages = [{ role: 'user', content: 'Tell me a random fact.' }]
+  command_parameter = replace_mentions(event.message, parameters.join(' '))
+
+  messages = []
+  messages.push({ role: 'user', content: 'Tell me a random fact.' }) if command_parameter.empty?
+  messages.push({ role: 'user', content: "Tell me a random fact about \"#{command_parameter}\"" }) unless command_parameter.empty?
 
   random_fact = ask_chat_gpt(messages)
 
@@ -183,7 +188,7 @@ end
 bot.command :g, description: 'Shows the first 10 Google results for a topic.', usage: 'k.g [words to search for]' do |event, *parameters|
   event.channel.start_typing
 
-  command_parameter = replace_mentions(parameters.join(' '))
+  command_parameter = replace_mentions(event.message, parameters.join(' '))
   if command_parameter.empty?
     event.channel.send_message 'You forgot to type what you want to search for!'
     event.channel.send_message '<:KermitWtf:1085519892993810482>'

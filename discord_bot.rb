@@ -183,15 +183,9 @@ end
 bot.command :g do |event, *parameters|
   event.channel.start_typing
 
-  command_parameter = parameters.join(' ')
+  command_parameter = replace_mentions(parameters.join(' '))
   if command_parameter.empty?
     event.channel.send_message 'You forgot to type what you want to search for!'
-    event.channel.send_message '<:KermitWtf:1085519892993810482>'
-    return nil
-  end
-
-  unless event.message.mentions.empty?
-    event.channel.send_message 'Can\'t search for discord mentions!'
     event.channel.send_message '<:KermitWtf:1085519892993810482>'
     return nil
   end

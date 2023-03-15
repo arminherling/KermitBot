@@ -12,7 +12,7 @@ CROSS_MARK = '❌'
 
 uri = URI('https://customsearch.googleapis.com/customsearch/v1')
 
-bot = Discordrb::Commands::CommandBot.new token: configatron.discord_token, prefix: 'k.'
+bot = Discordrb::Commands::CommandBot.new token: configatron.discord_token, prefix: ['k.', 'K.']
 
 def key_and_is_url?(array, key)
   return false unless array.key?(key)

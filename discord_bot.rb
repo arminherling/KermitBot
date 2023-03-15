@@ -80,7 +80,17 @@ end
 
 bot.command :g do |event, *parameters|
   command_parameter = parameters.join(' ')
-  return nil if command_parameter.empty?
+  if command_parameter.empty?
+    event.channel.send_message 'You forgot to type what you want to search for!'
+    event.channel.send_message '<:kermitwtf:1085519892993810482>'
+    return nil
+  end
+
+  unless event.message.mentions.empty?
+    event.channel.send_message 'Can\' search for discord mentions!'
+    event.channel.send_message '<:kermitwtf:1085519892993810482>'
+    return nil
+  end
 
   google_params = { gl: 'en', cx: configatron.google_cx, key: configatron.google_api, q: command_parameter }
 

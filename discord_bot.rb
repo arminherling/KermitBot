@@ -153,6 +153,7 @@ def ask_chat_gpt(messages)
   return nil unless response.is_a?(Net::HTTPSuccess)
 
   body = JSON.parse(response.body)
+  puts response.body
   return nil unless body.key? 'choices'
 
   choices = body['choices']
@@ -174,7 +175,9 @@ bot.mention start_with: /(<@407595570232950786>|<@272452671414337536>)/ do |even
 
   response_message = ask_chat_gpt(messages)
 
-  return nil if response_message.nil?
+  if response_message.nil?
+    event.channel.send_temporary_message 'Sorry I\'m busy right now.', 30
+  end
 
   event.channel.send_message response_message
 end

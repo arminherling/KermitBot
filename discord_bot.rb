@@ -48,6 +48,8 @@ KERMIT_REACTIONS = [
   '<:KermitYawn:1085643216524677210>'
 ].freeze
 
+bot_mentions_regex = /(<@407595570232950786>|<@272452671414337536>)/
+
 bot = Discordrb::Commands::CommandBot.new token: configatron.discord_token, prefix: ['k.', 'K.']
 
 def key_and_is_url?(array, key)
@@ -165,18 +167,22 @@ def ask_chat_gpt(messages)
   message['content'].strip
 end
 
-bot.mention start_with: /(<@407595570232950786>|<@272452671414337536>)/ do |event, *parameters|
-  command_parameter = replace_mentions(event.message, parameters.join(' '))
+bot.mention start_with: bot_mentions_regex do |event|
+  event.channel.start_typing
+  
+  message_without_mention = event.content.sub bot_mentions_regex, ''
+  trimmed_message = replace_mentions(event.message, message_without_mention)
 
   messages = []
   messages.push({ role: 'system', content: 'You are Kermit the frog. You are in an online chat, called \"Discord\".' })
-  messages.push({ role: 'user', content: 'Hi.' }) if command_parameter.empty?
-  messages.push({ role: 'user', content: command_parameter }) unless command_parameter.empty?
+  messages.push({ role: 'user', content: 'Hi.' }) if trimmed_message.empty?
+  messages.push({ role: 'user', content: trimmed_message }) unless trimmed_message.empty?
 
   response_message = ask_chat_gpt(messages)
 
   if response_message.nil?
     event.channel.send_temporary_message 'Sorry I\'m busy right now.', 30
+    next nil
   end
 
   event.channel.send_message response_message

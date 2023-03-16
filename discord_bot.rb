@@ -164,6 +164,21 @@ def ask_chat_gpt(messages)
   message['content'].strip
 end
 
+bot.mention start_with: /(<@407595570232950786>|<@272452671414337536>)/ do |event, *parameters|
+  command_parameter = replace_mentions(event.message, parameters.join(' '))
+
+  messages = []
+  messages.push({ role: 'system', content: 'You are Kermit the frog. You are in an online chat, called \"Discord\".' })
+  messages.push({ role: 'user', content: 'Hi.' }) if command_parameter.empty?
+  messages.push({ role: 'user', content: command_parameter }) unless command_parameter.empty?
+
+  response_message = ask_chat_gpt(messages)
+
+  return nil if response_message.nil?
+
+  event.channel.send_message response_message
+end
+
 bot.command :fact, description: 'Kermit asks ChatGPT for a random fact.', usage: 'k.fact [Optional topic]' do |event, *parameters|
   event.channel.start_typing
 

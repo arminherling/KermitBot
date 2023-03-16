@@ -145,9 +145,9 @@ def search_google(query)
 end
 
 def ask_chat_gpt(messages)
-  chat_gpt_url = URI('https://chatgpt-api.shn.hk/v1/')
+  chat_gpt_url = URI('https://api.openai.com/v1/chat/completions')
   query_body = { model: 'gpt-3.5-turbo', messages: messages }
-  chat_gpt_header = { 'Content-Type': 'application/json' }
+  chat_gpt_header = { 'Content-Type': 'application/json', 'Authorization': "Bearer #{configatron.chatgpt_token}" }
 
   response = Net::HTTP.post(chat_gpt_url, query_body.to_json, chat_gpt_header)
   return nil unless response.is_a?(Net::HTTPSuccess)
@@ -170,6 +170,7 @@ bot.command :fact, description: 'Kermit asks ChatGPT for a random fact.', usage:
   command_parameter = replace_mentions(event.message, parameters.join(' '))
 
   messages = []
+  messages.push({ role: 'system', content: 'You are Kermit the frog. You are in an online chat, called \"Discord\".' })
   messages.push({ role: 'user', content: 'Tell me a random fact.' }) if command_parameter.empty?
   messages.push({ role: 'user', content: "Tell me a random fact about \"#{command_parameter}\"" }) unless command_parameter.empty?
 

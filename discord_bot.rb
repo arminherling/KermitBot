@@ -177,8 +177,8 @@ bot.command :fact, description: 'Kermit asks ChatGPT for a random fact.', usage:
   random_fact = ask_chat_gpt(messages)
 
   if random_fact.nil?
-    event.channel.send_message 'Hmmm, I can\'t think of one right now.'
-    event.channel.send_message '<:KermitDerp2:1085642472669069413>'
+    event.channel.send_temporary_message 'Hmmm, I can\'t think of one right now.', 30
+    event.channel.send_temporary_message '<:KermitDerp2:1085642472669069413>', 30
     return nil
   end
 

@@ -52,6 +52,12 @@ bot_mentions_regex = /(<@407595570232950786>|<@272452671414337536>)/
 
 bot = Discordrb::Commands::CommandBot.new token: configatron.discord_token, prefix: ['k.', 'K.']
 
+def chatgpt_allowed?(channel)
+  return false if configatron.chatgpt_channel_blocklist.include? channel.id
+
+  true
+end
+
 def key_and_is_url?(array, key)
   return false unless array.key?(key)
 
@@ -168,8 +174,10 @@ def ask_chat_gpt(messages)
 end
 
 bot.mention start_with: bot_mentions_regex do |event|
+  next nil unless chatgpt_allowed? event.channel
+
   event.channel.start_typing
-  
+
   message_without_mention = event.content.sub bot_mentions_regex, ''
   trimmed_message = replace_mentions(event.message, message_without_mention)
 

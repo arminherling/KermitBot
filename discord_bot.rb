@@ -194,7 +194,7 @@ def ask_chat_gpt(messages)
 end
 
 def maybe_send_random_emoji(channel)
-  channel.send_message KERMIT_REACTIONS.sample if rand < 0.15
+  channel.send_message KERMIT_REACTIONS.sample if rand < 0.35
 end
 
 bot.mention start_with: bot_mentions_regex do |event|

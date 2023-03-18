@@ -139,6 +139,26 @@ def replace_mentions(message, content)
   content
 end
 
+def split_messages(str, max_length = 1000)
+  return [] if str.nil?
+
+  chunks = []
+  until str.empty?
+    if str.length < max_length
+      chunks.push str
+      return chunks
+    end
+    size = str.rindex(' ', max_length)
+
+    if !size.nil?
+      chunks.push str.slice! 0, size + 1
+    else
+      chunks.push str
+      return chunks
+    end
+  end
+end
+
 def search_google(query)
   google_search_url = URI('https://customsearch.googleapis.com/customsearch/v1')
   google_params = { gl: 'en', cx: configatron.google_cx, key: configatron.google_api, q: query }
@@ -190,14 +210,17 @@ bot.mention start_with: bot_mentions_regex do |event|
   messages.push({ role: 'user', content: 'Hi.' }) if trimmed_message.empty?
   messages.push({ role: 'user', content: trimmed_message }) unless trimmed_message.empty?
 
-  response_message = ask_chat_gpt(messages)
+  response_message = split_messages ask_chat_gpt(messages)
 
   if response_message.nil?
     event.channel.send_temporary_message 'Sorry I\'m busy right now.', 30
     next nil
   end
 
-  event.channel.send_message response_message
+  response_message.each do |part|
+    event.channel.send_message part
+  end
+
   maybe_send_random_emoji event.channel
 end
 

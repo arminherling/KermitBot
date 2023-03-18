@@ -173,6 +173,10 @@ def ask_chat_gpt(messages)
   message['content'].strip
 end
 
+def maybe_send_random_emoji(channel)
+  channel.send_message KERMIT_REACTIONS.sample if rand < 0.15
+end
+
 bot.mention start_with: bot_mentions_regex do |event|
   next nil unless chatgpt_allowed? event.channel
 
@@ -182,7 +186,7 @@ bot.mention start_with: bot_mentions_regex do |event|
   trimmed_message = replace_mentions(event.message, message_without_mention)
 
   messages = []
-  messages.push({ role: 'system', content: 'You are Kermit the frog. You are in an online chat, called \"Discord\".' })
+  messages.push({ role: 'system', content: 'Pretend you are a Kermit the Frog. You are in an online chat, called \"Discord\".' })
   messages.push({ role: 'user', content: 'Hi.' }) if trimmed_message.empty?
   messages.push({ role: 'user', content: trimmed_message }) unless trimmed_message.empty?
 
@@ -194,6 +198,7 @@ bot.mention start_with: bot_mentions_regex do |event|
   end
 
   event.channel.send_message response_message
+  maybe_send_random_emoji event.channel
 end
 
 bot.command :fact, description: 'Kermit asks ChatGPT for a random fact.', usage: 'k.fact [Optional topic]' do |event, *parameters|

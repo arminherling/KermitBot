@@ -210,7 +210,15 @@ bot.mention start_with: bot_mentions_regex do |event|
   messages.push({ role: 'user', content: 'Hi.' }) if trimmed_message.empty?
   messages.push({ role: 'user', content: trimmed_message }) unless trimmed_message.empty?
 
-  response_message = split_messages ask_chat_gpt(messages)
+  begin
+    chat_response = ask_chat_gpt messages
+  rescue Net::ReadTimeout => exception
+    puts exception
+    event.channel.send_message 'Oh, sorry about that. Can you please repeat what you asked me? This little froggy may have dozed off for a moment there.'
+    next nil
+  end
+
+  response_message = split_messages chat_response
 
   if response_message.nil?
     event.channel.send_temporary_message 'Sorry I\'m busy right now.', 30

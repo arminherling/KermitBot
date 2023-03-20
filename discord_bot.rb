@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative 'database'
 require 'discordrb'
 require 'net/http'
 require 'json'
@@ -47,6 +48,9 @@ KERMIT_REACTIONS = [
   '<:KermitWtf:1085519892993810482>',
   '<:KermitYawn:1085643216524677210>'
 ].freeze
+
+database = Database.new 'database.sqlite'
+database.migrate Pathname.pwd.join 'Sql'
 
 bot_mentions_regex = /(<@407595570232950786>|<@272452671414337536>)/
 
@@ -327,6 +331,33 @@ bot.command :g, description: 'Shows the first 10 Google results for a topic.', u
   message.edit(nil, current_embed, Discordrb::Webhooks::View.new)
 
   nil
+end
+
+bot.command :sql, description: 'Executes an SQL query.', usage: 'k.sql SELECT * FROM VERSIONS' do |event, *parameters|
+  return nil unless bot.bot_application.owner.id == event.user.id
+
+  return nil if parameters.empty?
+
+  result = []
+  begin
+    if parameters[0].casecmp('tables').zero?
+
+      # get all table names
+      result = database.execute "SELECT name FROM sqlite_master WHERE type='table'"
+    elsif parameters[0].casecmp('columns').zero? && parameters.count >= 2
+
+      # get all column names and types for a table
+      result = database.execute "PRAGMA table_info(#{parameters[1]})"
+    else
+
+      # execute the given query
+      result = database.execute parameters.join ' '
+    end
+
+    result.join("\n")
+  rescue SQLite3::Exception => e
+    "Transaction failed: #{e}"
+  end
 end
 
 bot.run

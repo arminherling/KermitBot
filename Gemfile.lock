@@ -37,6 +37,7 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
+    sqlite3 (1.6.1-x64-mingw-ucrt)
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.8.2-x64-mingw-ucrt)
@@ -54,6 +55,7 @@ DEPENDENCIES
   discordrb!
   json
   net-http
+  sqlite3
 
 BUNDLED WITH
    2.3.26

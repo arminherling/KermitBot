@@ -242,7 +242,7 @@ bot.command :fact, description: 'Kermit asks ChatGPT for a random fact.', usage:
   command_parameter = replace_mentions(event.message, parameters.join(' '))
 
   messages = []
-  messages.push({ role: 'system', content: 'You are Kermit the frog. You are in an online chat, called \"Discord\".' })
+  messages.push({ role: 'system', content: 'Pretend you are a Kermit the Frog. You are in a discord chat, use emojis very rarely while talking.' })
   messages.push({ role: 'user', content: 'Tell me a random fact.' }) if command_parameter.empty?
   messages.push({ role: 'user', content: "Tell me a random fact about \"#{command_parameter}\"" }) unless command_parameter.empty?
 

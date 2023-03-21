@@ -333,6 +333,71 @@ bot.command :g, description: 'Shows the first 10 Google results for a topic.', u
   nil
 end
 
+def character_length(object)
+  case object
+  when NilClass
+    3
+  when Integer
+    object.to_s.length
+  when String
+    object.length
+  end
+end
+
+def column_sizes(array)
+  keys = array[0].keys
+  sizes = []
+  keys.each do |key|
+    max_hash = array.max_by do |hash|
+      character_length hash[key]
+    end
+
+    sizes << character_length(max_hash[key])
+  end
+  sizes
+end
+
+def array_to_discord_code_block(array)
+  return '```[]```' if array.empty?
+
+  keys = array[0].keys
+
+  header = Hash[keys.map {|x| [x, x]}]
+  array_with_header = array + [header]
+  sizes = column_sizes array_with_header
+  code_block = +'```'
+
+  keys.each_with_index do |key, index|
+    code_block << " #{key.ljust(sizes[index])} "
+    code_block << '|' unless index + 1 == keys.length
+    code_block << "\n" if index + 1 == keys.length
+  end
+
+  total_size = sizes.sum + (keys.count * 2) + keys.count - 1
+
+  code_block << +'-' * total_size
+  code_block << "\n"
+
+  array.each do |value|
+    value.keys.each_with_index do |key, index|
+      case value[key]
+      when NilClass
+        code_block << " #{'nil'.to_s.ljust(sizes[index])} "
+      when Integer
+        code_block << " #{value[key].to_s.ljust(sizes[index])} "
+      when String
+        code_block << " #{value[key].ljust(sizes[index])} "
+      end
+
+      code_block << '|' unless index + 1 == value.length
+      code_block << "\n" if index + 1 == value.length
+    end
+  end
+
+  code_block << '```'
+  code_block
+end
+
 bot.command :sql, description: 'Executes an SQL query.', usage: 'k.sql SELECT * FROM VERSIONS' do |event, *parameters|
   return nil unless bot.bot_application.owner.id == event.user.id
 
@@ -361,6 +426,8 @@ bot.command :sql, description: 'Executes an SQL query.', usage: 'k.sql SELECT * 
 
       # get all column names and types for a table
       result = database.execute "PRAGMA table_info(#{sql_parts[1]})"
+      next "No such table: #{sql_parts[1]}" if result.empty?
+
     else
 
       # execute the given query
@@ -369,7 +436,7 @@ bot.command :sql, description: 'Executes an SQL query.', usage: 'k.sql SELECT * 
 
     return '[]' if result.empty?
 
-    result.join("\n")
+    array_to_discord_code_block result
   rescue SQLite3::Exception => e
     "Transaction failed: #{e}"
   end
@@ -411,6 +478,5 @@ bot.command :eval, description: 'Evaluates a string as Ruby code.', usage: 'k.ev
     "Evaluation failed: #{e}"
   end
 end
-
 
 bot.run

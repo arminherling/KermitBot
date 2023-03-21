@@ -375,15 +375,12 @@ bot.command :sql, description: 'Executes an SQL query.', usage: 'k.sql SELECT * 
   end
 end
 
-def capture_stdout(&block)
-  old_stdout = $stdout
-  $stdout = fake = StringIO.new
-  begin
-    yield
-  ensure
-    $stdout = old_stdout
-  end
-  fake.string
+def eval_and_capture_stdout(code)
+  out = StringIO.new
+  $stdout = out
+  result = eval(code)
+  $stdout = STDOUT
+  [out.string, result]
 end
 
 bot.command :eval, description: 'Evaluates a string as Ruby code.', usage: 'k.eval 2 + 2' do |event, *parameters|
@@ -403,8 +400,14 @@ bot.command :eval, description: 'Evaluates a string as Ruby code.', usage: 'k.ev
   return nil if command_parameter.empty?
 
   begin
-    capture_stdout { eval(command_parameter) }
-  rescue StandardError => e
+    output, result = eval_and_capture_stdout(command_parameter)
+
+    message = +''
+    message << "Output: ```#{output}```" unless output.empty?
+    message << "\n" unless output.empty?
+    message << "Result: ```#{result}```" unless result.to_s.empty?
+    message
+  rescue Exception => e
     "Evaluation failed: #{e}"
   end
 end

@@ -202,6 +202,7 @@ def eval_and_capture_stdout(code)
   $stdout = out
   result = eval(code)
   $stdout = STDOUT
+  puts out.string
   [out.string, result]
 end
 
@@ -225,13 +226,17 @@ bot.command :eval, help_available: false, description: 'Evaluates a string as Ru
     output, result = eval_and_capture_stdout(command_parameter)
 
     message = +''
-    message << "Output: ```#{output}```" unless output.empty?
+    message << "Output: ```\n#{output}```" unless output.empty?
     message << "\n" unless output.empty?
-    message << "Result: ```#{result}```" unless result.to_s.empty?
+    message << "Result: ```\n#{result}```" unless result.to_s.empty?
     message
   rescue Exception => e
     "Evaluation failed: #{e}"
   end
+end
+
+bot.command :chat, help_available: false, description: 'Various settings for the chatGPT bot' do |event, *parameters|
+  "eval 2"
 end
 
 bot.run

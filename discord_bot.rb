@@ -336,23 +336,38 @@ end
 bot.command :sql, description: 'Executes an SQL query.', usage: 'k.sql SELECT * FROM VERSIONS' do |event, *parameters|
   return nil unless bot.bot_application.owner.id == event.user.id
 
-  return nil if parameters.empty?
+  command_parameter = parameters.join(' ')
+  # remove code block markdown symbols
+  command_parameter.delete_prefix! '```sql'
+  command_parameter.delete_prefix! '```'
+  command_parameter.delete_suffix! '```'
+
+  # remove code line markdown symbols
+  command_parameter.delete_prefix! '``'
+  command_parameter.delete_suffix! '``'
+  command_parameter.strip!
+
+  return nil if command_parameter.empty?
+
+  sql_parts = command_parameter.split ' '
 
   result = []
   begin
-    if parameters[0].casecmp('tables').zero?
+    if command_parameter.downcase.start_with? 'tables'
 
       # get all table names
       result = database.execute "SELECT name FROM sqlite_master WHERE type='table'"
-    elsif parameters[0].casecmp('columns').zero? && parameters.count >= 2
+    elsif command_parameter.downcase.start_with?('columns') && sql_parts.count >= 2
 
       # get all column names and types for a table
-      result = database.execute "PRAGMA table_info(#{parameters[1]})"
+      result = database.execute "PRAGMA table_info(#{sql_parts[1]})"
     else
 
       # execute the given query
-      result = database.execute parameters.join ' '
+      result = database.execute command_parameter
     end
+
+    return '[]' if result.empty?
 
     result.join("\n")
   rescue SQLite3::Exception => e

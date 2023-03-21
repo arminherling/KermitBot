@@ -202,7 +202,6 @@ def eval_and_capture_stdout(code)
   $stdout = out
   result = eval(code)
   $stdout = STDOUT
-  puts out.string
   [out.string, result]
 end
 

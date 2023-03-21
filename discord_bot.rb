@@ -375,4 +375,26 @@ bot.command :sql, description: 'Executes an SQL query.', usage: 'k.sql SELECT * 
   end
 end
 
+bot.command :eval, description: 'Evaluates a string as Ruby code.', usage: 'k.eval 2 + 2' do |event, *parameters|
+  return nil unless bot.bot_application.owner.id == event.user.id
+
+  command_parameter = parameters.join(' ')
+  # remove code block markdown symbols
+  command_parameter.delete_prefix! '```'
+  command_parameter.delete_suffix! '```'
+
+  # remove code line markdown symbols
+  command_parameter.delete_prefix! '``'
+  command_parameter.delete_suffix! '``'
+  command_parameter.strip!
+
+  return nil if command_parameter.empty?
+
+  begin
+    eval(command_parameter)
+  rescue StandardError => e
+    "Evaluation failed: #{e}"
+  end
+end
+
 bot.run

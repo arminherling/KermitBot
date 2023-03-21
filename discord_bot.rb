@@ -375,6 +375,17 @@ bot.command :sql, description: 'Executes an SQL query.', usage: 'k.sql SELECT * 
   end
 end
 
+def capture_stdout(&block)
+  old_stdout = $stdout
+  $stdout = fake = StringIO.new
+  begin
+    yield
+  ensure
+    $stdout = old_stdout
+  end
+  fake.string
+end
+
 bot.command :eval, description: 'Evaluates a string as Ruby code.', usage: 'k.eval 2 + 2' do |event, *parameters|
   return nil unless bot.bot_application.owner.id == event.user.id
 
@@ -392,10 +403,11 @@ bot.command :eval, description: 'Evaluates a string as Ruby code.', usage: 'k.ev
   return nil if command_parameter.empty?
 
   begin
-    eval(command_parameter)
+    capture_stdout { eval(command_parameter) }
   rescue StandardError => e
     "Evaluation failed: #{e}"
   end
 end
+
 
 bot.run

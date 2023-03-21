@@ -380,6 +380,7 @@ bot.command :eval, description: 'Evaluates a string as Ruby code.', usage: 'k.ev
 
   command_parameter = parameters.join(' ')
   # remove code block markdown symbols
+  command_parameter.delete_prefix! '```rb'
   command_parameter.delete_prefix! '```'
   command_parameter.delete_suffix! '```'
 

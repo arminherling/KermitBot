@@ -71,7 +71,7 @@ bot.command :fact, description: 'Kermit asks ChatGPT for a random fact.', usage:
   messages.push({ role: 'user', content: 'Tell me a random fact.' }) if command_parameter.empty?
   messages.push({ role: 'user', content: "Tell me a random fact about \"#{command_parameter}\"" }) unless command_parameter.empty?
 
-  random_fact = ask_chat_gpt(messages)
+  random_fact = ask_chat_gpt messages, configatron
 
   if random_fact.nil?
     event.channel.send_temporary_message 'Hmmm, I can\'t think of one right now.', 30

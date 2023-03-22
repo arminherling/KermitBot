@@ -45,6 +45,17 @@ class Database
     @db.execute sql
   end
 
+  def set_server_chat_context(server_id, context)
+    @db.execute 'INSERT OR REPLACE INTO chat_context (server_id, text) VALUES (?, ?)', [server_id, context]
+  end
+
+  def get_server_chat_context(server_id)
+    result = @db.execute 'SELECT text FROM chat_context WHERE server_id = ?', [server_id]
+    return nil if result.empty?
+
+    result[0]['text']
+  end
+
   private
 
   def create_versions_table_if_needed

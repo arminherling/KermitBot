@@ -29,8 +29,13 @@ bot.mention start_with: bot_mentions_regex do |event|
   message_without_mention = event.content.sub bot_mentions_regex, ''
   trimmed_message = replace_mentions(event.message, message_without_mention)
 
+  server_id = event.server.id
+
+  chat_context = database.get_server_chat_context server_id
+
   messages = []
   messages.push({ role: 'system', content: 'Pretend you are a Kermit the Frog. You are in a discord chat, use emojis very rarely while talking.' })
+  messages.push({ role: 'system', content: chat_context }) unless chat_context.nil?
   messages.push({ role: 'user', content: 'Hi.' }) if trimmed_message.empty?
   messages.push({ role: 'user', content: trimmed_message }) unless trimmed_message.empty?
 
@@ -235,7 +240,24 @@ bot.command :eval, help_available: false, description: 'Evaluates a string as Ru
 end
 
 bot.command :chat, help_available: false, description: 'Various settings for the chatGPT bot' do |event, *parameters|
-  "eval 2"
+  return nil unless bot.bot_application.owner.id == event.user.id
+
+  server_id = event.server.id
+
+  if parameters.count == 1 && parameters[0].casecmp('context').zero?
+    result = database.get_server_chat_context server_id
+
+    next 'Server context was not set for this server yet.' if result.nil?
+
+    "Server context: '#{result}'"
+  elsif parameters.count >= 1 && parameters[0].casecmp('context').zero?
+    context = parameters.drop 1
+    text = context.join ' '
+
+    database.set_server_chat_context server_id, text
+
+    next "Server context was set to: '#{text}'"
+  end
 end
 
 bot.run

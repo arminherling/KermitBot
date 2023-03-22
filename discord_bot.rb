@@ -30,7 +30,7 @@ bot.mention start_with: bot_mentions_regex do |event|
   trimmed_message = replace_mentions(event.message, message_without_mention)
 
   messages = []
-  messages.push({ role: 'system', content: 'Pretend you are a Kermit the Frog. You are in an online chat, called \"Discord\".' })
+  messages.push({ role: 'system', content: 'Pretend you are a Kermit the Frog. You are in a discord chat, use emojis very rarely while talking.' })
   messages.push({ role: 'user', content: 'Hi.' }) if trimmed_message.empty?
   messages.push({ role: 'user', content: trimmed_message }) unless trimmed_message.empty?
 

@@ -260,4 +260,38 @@ bot.command :chat, help_available: false, description: 'Various settings for the
   end
 end
 
+bot.command :info, help_available: false, min_args: 0, max_args: 1, description: 'Shows information about a member', usage: 'k.info @Someone' do |event, mention|
+  if mention.nil?
+    member = event.author
+    embed = create_embed_for_member_info member
+    event.channel.send_message '', false, embed
+
+    return nil
+  end
+
+  unless event.message.mentions.empty?
+    member_id = event.message.mentions[0].id
+    member = event.server.member member_id
+    embed = create_embed_for_member_info member
+    event.channel.send_message '', false, embed
+
+    return nil
+  end
+
+  found_member = event.server.members.find do |x|
+    x.username.casecmp(mention).zero?
+  end
+
+  unless found_member.nil?
+    embed = create_embed_for_member_info found_member
+    event.channel.send_message '', false, embed
+
+    return nil
+  end
+
+  event.channel.send_message "I don't know who that is."
+  event.channel.send_message '<:KermitWtf:1085519892993810482>'
+end
+
+
 bot.run

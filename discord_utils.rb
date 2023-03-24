@@ -142,3 +142,23 @@ def array_to_discord_code_block(array)
   code_block << '```'
   code_block
 end
+
+def create_embed_for_member_info(member)
+  avatar = "https://cdn.discordapp.com/avatars/#{member.id}/#{member.avatar_id}.webp?size=1024"
+
+  time_until = member.communication_disabled_until
+  timeout = 'No timeout'
+  timeout = "<t:#{time_until.to_i}:R>" unless time_until.nil?
+
+  Discordrb::Webhooks::Embed.new(
+    color: 0x5cb200,
+    author: Discordrb::Webhooks::EmbedAuthor.new(name: "#{member.username}:#{member.discriminator}", icon_url: avatar),
+    fields: [
+      Discordrb::Webhooks::EmbedField.new(name: 'Stars given:', value: '-', inline: true),
+      Discordrb::Webhooks::EmbedField.new(name: 'Stars received:', value: '-', inline: true),
+      Discordrb::Webhooks::EmbedField.new(name: 'Birthday:', value: '-', inline: true),
+      Discordrb::Webhooks::EmbedField.new(name: 'Timeout ends:', value: timeout, inline: true)
+    ],
+    image: Discordrb::Webhooks::EmbedImage.new(url: avatar)
+  )
+end

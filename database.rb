@@ -56,6 +56,41 @@ class Database
     result[0]['text']
   end
 
+  def insert_command_usage(user_id, server_id, command_name, command)
+    insert_command_sql = <<-SQL
+    INSERT INTO command_usage (user_id, server_id, command_name, command)
+    VALUES(?, ?, ?, ?)
+    SQL
+
+    @db.execute insert_command_sql, [user_id, server_id, command_name, command]
+  end
+
+  def get_server_command_count(user_id, server_id)
+    result = @db.execute 'SELECT count(1) FROM command_usage WHERE user_id = ? AND server_id = ?', [user_id, server_id]
+    return 0 if result.empty?
+
+    result[0]['count(1)']
+  end
+
+  def get_total_command_count(user_id)
+    result = @db.execute 'SELECT count(1) FROM command_usage WHERE user_id = ?', [user_id]
+    return 0 if result.empty?
+
+    result[0]['count(1)']
+  end
+
+  def get_top_five_favorite_command(user_id)
+    favorite_command_sql = <<-SQL
+    SELECT command_name, count(1) AS count
+    FROM command_usage
+    WHERE user_id = ?
+    GROUP BY command_name
+    ORDER BY count DESC LIMIT 5
+    SQL
+
+    @db.execute favorite_command_sql, [user_id]
+  end
+
   private
 
   def create_versions_table_if_needed

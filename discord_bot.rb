@@ -24,6 +24,8 @@ bot_mentions_regex = /(<@407595570232950786>|<@272452671414337536>)/
 bot.mention start_with: bot_mentions_regex do |event|
   next nil unless chatgpt_allowed? event.channel
 
+  database.insert_command_usage event.author.id, event.server.id, 'chat', event.message.content
+
   event.channel.start_typing
 
   message_without_mention = event.content.sub bot_mentions_regex, ''
@@ -62,6 +64,8 @@ bot.mention start_with: bot_mentions_regex do |event|
 end
 
 bot.command :fact, description: 'Kermit asks ChatGPT for a random fact.', usage: 'k.fact [Optional topic]' do |event, *parameters|
+  database.insert_command_usage event.author.id, event.server.id, 'fact', event.message.content
+
   event.channel.start_typing
 
   command_parameter = replace_mentions(event.message, parameters.join(' '))
@@ -84,6 +88,8 @@ bot.command :fact, description: 'Kermit asks ChatGPT for a random fact.', usage:
 end
 
 bot.command :g, description: 'Shows the first 10 Google results for a topic.', usage: 'k.g [words to search for]' do |event, *parameters|
+  database.insert_command_usage event.author.id, event.server.id, 'google', event.message.content
+
   event.channel.start_typing
 
   command_parameter = replace_mentions(event.message, parameters.join(' '))
@@ -161,6 +167,8 @@ end
 bot.command :sql, help_available: false, description: 'Executes an SQL query.', usage: 'k.sql SELECT * FROM VERSIONS' do |event, *parameters|
   return nil unless bot.bot_application.owner.id == event.user.id
 
+  database.insert_command_usage event.author.id, event.server.id, 'sql', event.message.content
+
   command_parameter = parameters.join(' ')
   # remove code block markdown symbols
   command_parameter.delete_prefix! '```sql'
@@ -213,6 +221,8 @@ end
 bot.command :eval, help_available: false, description: 'Evaluates a string as Ruby code.', usage: 'k.eval 2 + 2' do |event, *parameters|
   return nil unless bot.bot_application.owner.id == event.user.id
 
+  database.insert_command_usage event.author.id, event.server.id, 'eval', event.message.content
+
   command_parameter = parameters.join(' ')
   # remove code block markdown symbols
   command_parameter.delete_prefix! '```rb'
@@ -242,6 +252,8 @@ end
 bot.command :chat, help_available: false, description: 'Various settings for the chatGPT bot' do |event, *parameters|
   return nil unless bot.bot_application.owner.id == event.user.id
 
+  database.insert_command_usage event.author.id, event.server.id, 'chat setting', event.message.content
+
   server_id = event.server.id
 
   if parameters.count == 1 && parameters[0].casecmp('context').zero?
@@ -261,9 +273,13 @@ bot.command :chat, help_available: false, description: 'Various settings for the
 end
 
 bot.command :info, help_available: false, min_args: 0, max_args: 1, description: 'Shows information about a member', usage: 'k.info @Someone' do |event, mention|
+  server = event.server
+
+  database.insert_command_usage event.author.id, server.id, 'info', event.message.content
+
   if mention.nil?
     member = event.author
-    embed = create_embed_for_member_info member
+    embed = create_embed_for_member_info member, server, database
     event.channel.send_message '', false, embed
 
     return nil
@@ -271,19 +287,19 @@ bot.command :info, help_available: false, min_args: 0, max_args: 1, description:
 
   unless event.message.mentions.empty?
     member_id = event.message.mentions[0].id
-    member = event.server.member member_id
-    embed = create_embed_for_member_info member
+    member = server.member member_id
+    embed = create_embed_for_member_info member, server, database
     event.channel.send_message '', false, embed
 
     return nil
   end
 
-  found_member = event.server.members.find do |x|
+  found_member = server.members.find do |x|
     x.username.casecmp(mention).zero?
   end
 
   unless found_member.nil?
-    embed = create_embed_for_member_info found_member
+    embed = create_embed_for_member_info found_member, server, database
     event.channel.send_message '', false, embed
 
     return nil

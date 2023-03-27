@@ -272,7 +272,7 @@ bot.command :chat, help_available: false, description: 'Various settings for the
   end
 end
 
-bot.command :info, help_available: false, min_args: 0, max_args: 1, description: 'Shows information about a member', usage: 'k.info @Someone' do |event, mention|
+bot.command :info, min_args: 0, max_args: 1, description: 'Shows information about a member', usage: 'k.info @Someone' do |event, mention|
   server = event.server
 
   database.insert_command_usage event.author.id, server.id, 'info', event.message.content

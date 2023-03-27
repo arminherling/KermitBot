@@ -146,10 +146,6 @@ end
 def create_embed_for_member_info(member, server, database)
   avatar = "https://cdn.discordapp.com/avatars/#{member.id}/#{member.avatar_id}.webp?size=1024"
 
-  time_until = member.communication_disabled_until
-  timeout = 'No timeout'
-  timeout = "<t:#{time_until.to_i}:R>" unless time_until.nil?
-
   total_commands = database.get_total_command_count member.id
   server_commands = database.get_server_command_count member.id, server.id
   top_five_commands = database.get_top_five_favorite_command member.id
@@ -163,7 +159,7 @@ def create_embed_for_member_info(member, server, database)
     fields: [
       Discordrb::Webhooks::EmbedField.new(name: 'Stars given:', value: '-', inline: true),
       Discordrb::Webhooks::EmbedField.new(name: 'Stars received:', value: '-', inline: true),
-      Discordrb::Webhooks::EmbedField.new(name: 'Timeout:', value: timeout, inline: true),
+      Discordrb::Webhooks::EmbedField.new(name: 'Birthday:', value: '-', inline: true),
       Discordrb::Webhooks::EmbedField.new(name: 'Server commands:', value: server_commands, inline: true),
       Discordrb::Webhooks::EmbedField.new(name: 'Total commands:', value: total_commands, inline: true),
       Discordrb::Webhooks::EmbedField.new(name: 'Top 5 commands:', value: top_five_value, inline: false)

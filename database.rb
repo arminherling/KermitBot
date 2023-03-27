@@ -91,6 +91,54 @@ class Database
     @db.execute favorite_command_sql, [user_id]
   end
 
+  def insert_starboard(
+    star_count,
+    message_id,
+    channel_id,
+    server_id,
+    starboard_message_id,
+    content,
+    message_timestamp,
+    author_name,
+    author_icon,
+    embed_image_url,
+    jump_link,
+    attachment_link
+  )
+
+    insert_command_sql = <<-SQL
+    INSERT OR REPLACE INTO starboard (
+    star_count,
+    message_id,
+    channel_id,
+    server_id,
+    starboard_message_id,
+    content,
+    message_timestamp,
+    author_name,
+    author_icon,
+    embed_image_url,
+    jump_link,
+    attachment_link)
+    VALUES(?, ?, ?, ?, ?, ?, datetime(?), ?, ?, ?, ?, ?)
+    SQL
+
+    @db.execute insert_command_sql, [
+      star_count,
+      message_id,
+      channel_id,
+      server_id,
+      starboard_message_id,
+      content,
+      message_timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+      author_name,
+      author_icon,
+      embed_image_url,
+      jump_link,
+      attachment_link
+    ]
+  end
+
   private
 
   def create_versions_table_if_needed

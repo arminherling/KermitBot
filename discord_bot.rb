@@ -4,6 +4,7 @@ require_relative 'chat'
 require_relative 'database'
 require_relative 'discord_utils'
 require_relative 'google'
+require_relative 'starboard_parser'
 require 'discordrb'
 require 'configatron'
 require_relative 'config'
@@ -269,6 +270,46 @@ bot.command :chat, help_available: false, description: 'Various settings for the
     database.set_server_chat_context server_id, text
 
     next "Server context was set to: '#{text}'"
+  end
+end
+
+bot.command :star, help_available: false, description: 'Starboard' do |event, *parameters|
+  return nil unless bot.bot_application.owner.id == event.user.id
+
+  database.insert_command_usage event.author.id, event.server.id, 'star', event.message.content
+
+  if parameters.count == 2 && parameters[0].casecmp('parse').zero?
+    found_channel = event.server.channels.find do |x|
+      channel_tag = "<##{x.id}>"
+      channel_tag.casecmp(parameters[1]).zero?
+    end
+    next "Channel '#{parameters[1]}' could not be found." if found_channel.nil?
+
+    next "#{parameters[1]} Is not a text channel." unless found_channel.text?
+
+    total = 0
+    before_id = nil
+
+    while true
+      messages = found_channel.history 100, before_id
+      break if messages.empty?
+
+      messages.each do |m|
+        next unless m.author.bot_account?
+
+        total += 1
+        case m.author.id
+        when 235148962103951360
+          parse_carl_bot_message m, database
+        when 212589758243799040
+          parse_ragnarok_bot_message m, database
+        end
+      end
+      last = messages[-1]
+      before_id = last.id
+    end
+
+    puts "Total: #{total}"
   end
 end
 

@@ -274,12 +274,13 @@ bot.command :chat, help_available: false, description: 'Various settings for the
 end
 
 bot.command :star, help_available: false, description: 'Starboard' do |event, *parameters|
-
   database.insert_command_usage event.author.id, event.server.id, 'star', event.message.content
 
+  server_id = event.server.id
+
   if parameters.count.zero?
-    data = database.random_starboard_message
-    next 'No starboard message found' if data.empty?
+    data = database.random_starboard_message server_id
+    next 'No starboard message found' if data.nil?
 
     message_content = "⭐ **#{data['star_count']}** | <##{data['channel_id']}>"
     embed = create_embed_for_starboard_message data

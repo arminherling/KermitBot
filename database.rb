@@ -138,7 +138,7 @@ class Database
     ]
   end
 
-  def random_starboard_message
+  def random_starboard_message(server_id)
     select_random_starboard_message = <<-SQL
     SELECT
     star_count,
@@ -152,10 +152,10 @@ class Database
     embed_image_url,
     jump_link,
     attachment_link
-    FROM starboard ORDER BY random() LIMIT 1;
+    FROM starboard WHERE server_id = ? ORDER BY random() LIMIT 1;
     SQL
 
-    result = @db.execute select_random_starboard_message
+    result = @db.execute select_random_starboard_message, [server_id]
 
     return nil if result.empty?
 

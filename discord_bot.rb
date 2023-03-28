@@ -278,7 +278,17 @@ bot.command :star, help_available: false, description: 'Starboard' do |event, *p
 
   database.insert_command_usage event.author.id, event.server.id, 'star', event.message.content
 
-  if parameters.count == 2 && parameters[0].casecmp('parse').zero?
+  if parameters.count.zero?
+    data = database.random_starboard_message
+    next 'No starboard message found' if data.empty?
+
+    message_content = "⭐ **#{data['star_count']}** | <##{data['channel_id']}>"
+    embed = create_embed_for_starboard_message data
+    button = create_button_for_starboard_message data
+    event.channel.send_message message_content, false, embed, nil, nil, nil, button
+
+    return nil
+  elsif parameters.count == 2 && parameters[0].casecmp('parse').zero?
     found_channel = event.server.channels.find do |x|
       channel_tag = "<##{x.id}>"
       channel_tag.casecmp(parameters[1]).zero?

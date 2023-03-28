@@ -50,7 +50,6 @@ def create_embed_for_result(google_query, google_result, current_item, total_ite
   Discordrb::Webhooks::Embed.new(
     title: google_result['title'],
     description: get_description(google_result),
-    # timestamp: Time.now,
     color: 0x5cb200,
     footer: Discordrb::Webhooks::EmbedFooter.new(text: "#{current_item + 1} of #{total_items} - Total results: #{total_results}"),
     thumbnail: get_thumbnail(google_result),

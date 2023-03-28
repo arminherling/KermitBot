@@ -167,3 +167,33 @@ def create_embed_for_member_info(member, server, database)
     image: Discordrb::Webhooks::EmbedImage.new(url: avatar)
   )
 end
+
+def create_embed_for_starboard_message(data)
+  embed_image = Discordrb::Webhooks::EmbedImage.new(url: data['embed_image_url']) unless data['embed_image_url'].nil?
+  fields = []
+  fields = [Discordrb::Webhooks::EmbedField.new(name: 'Attachment:', value: attachment_link)] unless attachment_link.nil?
+
+  Discordrb::Webhooks::Embed.new(
+    color: 0x5cb200,
+    description: data['content'],
+    timestamp: datetime,
+    image: embed_image,
+    author: Discordrb::Webhooks::EmbedAuthor.new(name: data['author_name'], icon_url: data['author_icon']),
+    footer: Discordrb::Webhooks::EmbedFooter.new(text: "ID: #{data['message_id']}"),
+    fields: fields
+  )
+end
+
+def create_button_for_starboard_message(data)
+  url = create_message_link data['server_id'], data['channel_id'], data['message_id']
+
+  view = Discordrb::Webhooks::View.new
+  view.row do |row|
+    row.button(label: 'Original message', style: :link, url: url)
+  end
+  view
+end
+
+def create_message_link(server_id, channel_id, message_id)
+  "https://discord.com/channels/#{server_id}/#{channel_id}/#{message_id}"
+end

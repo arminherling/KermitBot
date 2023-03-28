@@ -105,7 +105,6 @@ class Database
     jump_link,
     attachment_link
   )
-
     insert_command_sql = <<-SQL
     INSERT OR REPLACE INTO starboard (
     star_count,
@@ -137,6 +136,30 @@ class Database
       jump_link,
       attachment_link
     ]
+  end
+
+  def random_starboard_message
+    select_random_starboard_message = <<-SQL
+    SELECT
+    star_count,
+    message_id,
+    channel_id,
+    server_id,
+    content,
+    message_timestamp,
+    author_name,
+    author_icon,
+    embed_image_url,
+    jump_link,
+    attachment_link
+    FROM starboard ORDER BY random() LIMIT 1;
+    SQL
+
+    result = @db.execute select_random_starboard_message
+
+    return nil if result.empty?
+
+    result[0]
   end
 
   private

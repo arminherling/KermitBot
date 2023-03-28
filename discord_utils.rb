@@ -171,12 +171,12 @@ end
 def create_embed_for_starboard_message(data)
   embed_image = Discordrb::Webhooks::EmbedImage.new(url: data['embed_image_url']) unless data['embed_image_url'].nil?
   fields = []
-  fields = [Discordrb::Webhooks::EmbedField.new(name: 'Attachment:', value: attachment_link)] unless attachment_link.nil?
+  fields = [Discordrb::Webhooks::EmbedField.new(name: 'Attachment:', value: data['attachment_link'])] unless data['attachment_link'].nil?
 
   Discordrb::Webhooks::Embed.new(
     color: 0x5cb200,
     description: data['content'],
-    timestamp: datetime,
+    timestamp: Time.strptime(data['message_timestamp'], '%Y-%m-%d %H:%M:%S'),
     image: embed_image,
     author: Discordrb::Webhooks::EmbedAuthor.new(name: data['author_name'], icon_url: data['author_icon']),
     footer: Discordrb::Webhooks::EmbedFooter.new(text: "ID: #{data['message_id']}"),

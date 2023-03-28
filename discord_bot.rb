@@ -274,7 +274,6 @@ bot.command :chat, help_available: false, description: 'Various settings for the
 end
 
 bot.command :star, help_available: false, description: 'Starboard' do |event, *parameters|
-  return nil unless bot.bot_application.owner.id == event.user.id
 
   database.insert_command_usage event.author.id, event.server.id, 'star', event.message.content
 
@@ -289,6 +288,8 @@ bot.command :star, help_available: false, description: 'Starboard' do |event, *p
 
     return nil
   elsif parameters.count == 2 && parameters[0].casecmp('parse').zero?
+    return nil unless bot.bot_application.owner.id == event.user.id
+
     found_channel = event.server.channels.find do |x|
       channel_tag = "<##{x.id}>"
       channel_tag.casecmp(parameters[1]).zero?

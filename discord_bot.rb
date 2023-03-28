@@ -273,14 +273,27 @@ bot.command :chat, help_available: false, description: 'Various settings for the
   end
 end
 
-bot.command :star, help_available: false, description: 'Starboard' do |event, *parameters|
-  database.insert_command_usage event.author.id, event.server.id, 'star', event.message.content
+bot.command :star, description: 'Starboard' do |event, *parameters|
+  database.insert_command_usage event.author.id, event.server.id, 'Starboard commands', event.message.content
 
   server_id = event.server.id
 
   if parameters.count.zero?
     data = database.random_starboard_message server_id
-    next 'No starboard message found' if data.nil?
+    next 'No starboard message found.' if data.nil?
+
+    message_content = "⭐ **#{data['star_count']}** | <##{data['channel_id']}>"
+    embed = create_embed_for_starboard_message data
+    button = create_button_for_starboard_message data
+    event.channel.send_message message_content, false, embed, nil, nil, nil, button
+
+    return nil
+  elsif parameters.count == 1
+    message_id = Integer(parameters[0], exception: false)
+    next 'Expected a message ID as parameter.' if message_id.nil?
+
+    data = database.get_starboard_message server_id, message_id
+    next 'Starboard message not found.' if data.nil?
 
     message_content = "⭐ **#{data['star_count']}** | <##{data['channel_id']}>"
     embed = create_embed_for_starboard_message data

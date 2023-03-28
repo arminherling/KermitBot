@@ -162,6 +162,30 @@ class Database
     result[0]
   end
 
+  def get_starboard_message(server_id, message_id)
+    select_starboard_message = <<-SQL
+    SELECT
+    star_count,
+    message_id,
+    channel_id,
+    server_id,
+    content,
+    message_timestamp,
+    author_name,
+    author_icon,
+    embed_image_url,
+    jump_link,
+    attachment_link
+    FROM starboard WHERE server_id = ? AND message_id = ? ORDER BY random() LIMIT 1;
+    SQL
+
+    result = @db.execute select_starboard_message, [server_id, message_id]
+
+    return nil if result.empty?
+
+    result[0]
+  end
+
   private
 
   def create_versions_table_if_needed

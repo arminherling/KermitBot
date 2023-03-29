@@ -56,7 +56,10 @@ bot.mention start_with: bot_mentions_regex do |event|
     next nil
   end
 
-  chat_response.sub!(/kermit:/i, '') if chat_response.scan(/kermit:/i).count == 1
+  if chat_response.start_with?(/kermit:/i)
+    index = chat_response.index ':'
+    chat_response = chat_response[index + 1..].strip unless index.nil?
+  end
 
   response_message = split_messages chat_response
 

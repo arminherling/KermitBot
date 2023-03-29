@@ -280,7 +280,7 @@ bot.command :chat, help_available: false, description: 'Various settings for the
 end
 
 bot.command :star, description: 'Starboard' do |event, *parameters|
-  database.insert_command_usage event.author.id, event.server.id, 'Starboard commands', event.message.content
+  database.insert_command_usage event.author.id, event.server.id, 'star', event.message.content
 
   server_id = event.server.id
 

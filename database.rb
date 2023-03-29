@@ -19,10 +19,9 @@ class Database
     end
 
     file_map.sort.each do |version_number, file_name|
-      if version_exist? version_number
-        puts "Skip version: #{version_number}"
-        next
-      end
+      next if version_exist? version_number
+
+      puts "Applying sql script version: #{version_number}"
 
       full_file_path = directory.join file_name
       file = File.open full_file_path

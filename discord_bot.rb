@@ -33,14 +33,15 @@ bot.mention start_with: bot_mentions_regex do |event|
   trimmed_message = replace_mentions(event.message, message_without_mention)
 
   server_id = event.server.id
+  user_name = event.author.name
 
   chat_context = database.get_server_chat_context server_id
 
   messages = []
   messages.push({ role: 'system', content: 'Pretend you are a Kermit the Frog. You are in a discord chat, use emojis very rarely while talking.' })
   messages.push({ role: 'system', content: chat_context }) unless chat_context.nil?
-  messages.push({ role: 'user', content: 'Hi.' }) if trimmed_message.empty?
-  messages.push({ role: 'user', content: trimmed_message }) unless trimmed_message.empty?
+  messages.push({ role: 'user', content: "#{user_name}: Hi." }) if trimmed_message.empty?
+  messages.push({ role: 'user', content: "#{user_name}: #{trimmed_message}" }) unless trimmed_message.empty?
 
   begin
     chat_response = ask_chat_gpt messages, configatron
@@ -50,12 +51,14 @@ bot.mention start_with: bot_mentions_regex do |event|
     next nil
   end
 
-  response_message = split_messages chat_response
-
-  if response_message.nil?
+  if chat_response.nil?
     event.channel.send_temporary_message 'Sorry I\'m busy right now.', 30
     next nil
   end
+
+  chat_response.sub!(/kermit:/i, '') if chat_response.scan(/kermit:/i).count == 1
+
+  response_message = split_messages chat_response
 
   response_message.each do |part|
     event.channel.send_message part

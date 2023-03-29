@@ -59,8 +59,6 @@ bot.mention start_with: bot_mentions_regex do |event|
   if chat_response.start_with?(/kermit/i)
     index = chat_response.index ':'
     chat_response = chat_response[index + 1..].strip unless index.nil?
-    puts index
-    puts chat_response
   end
 
   response_message = split_messages chat_response

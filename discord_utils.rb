@@ -197,6 +197,8 @@ def create_button_for_starboard_message(data)
 end
 
 def create_top_five_buttons_for_starboard_message(data)
+  return nil if data.empty?
+
   view = Discordrb::Webhooks::View.new
   view.row do |row|
     data.each do |d|

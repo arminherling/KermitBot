@@ -11,7 +11,12 @@ def insert_starboard_reactions(server, channel_id, message_id, database)
     return
   end
 
-  message = found_channel.load_message message_id
+  begin
+    message = found_channel.load_message message_id
+  rescue Exception => e
+    puts "Couldn't load message #{message_id} in channel #{found_channel.name}"
+    return
+  end
   if message.nil?
     puts "Message '#{message_id}' could not be found."
     return

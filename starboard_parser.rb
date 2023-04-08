@@ -1,5 +1,36 @@
 # frozen_string_literal: true
 
+STAR = '⭐'
+
+def insert_starboard_reactions(server, channel_id, message_id, database)
+  found_channel = server.channels.find do |x|
+    x.id == channel_id
+  end
+  if found_channel.nil?
+    puts "Channel '#{channel_id}' could not be found."
+    return
+  end
+
+  message = found_channel.load_message message_id
+  if message.nil?
+    puts "Message '#{message_id}' could not be found."
+    return
+  end
+
+  author_id = message.author.id
+  star_reactions = message.reacted_with STAR
+
+  star_reactions.each do |user|
+    database.insert_starboard_reaction(
+      server.id,
+      channel_id,
+      message_id,
+      author_id,
+      user.id
+    )
+  end
+end
+
 def parse_carl_bot_message(message, database)
   server_id = message.server.id
 
@@ -13,7 +44,8 @@ def parse_carl_bot_message(message, database)
 
   channel_name = split[1] if star_count == 1
   channel_name = split[2] unless star_count == 1
-  channel_id = channel_name.gsub('<#', '').gsub('>', '')
+  channel_id_string = channel_name.gsub('<#', '').gsub('>', '')
+  channel_id = Integer(channel_id_string, exception: false)
 
   return if message.embeds.empty?
 
@@ -47,9 +79,9 @@ def parse_carl_bot_message(message, database)
 
   database.insert_starboard(
     star_count,
-    message_id,
-    channel_id,
     server_id,
+    channel_id,
+    message_id,
     nil,
     content,
     message_time,
@@ -59,6 +91,8 @@ def parse_carl_bot_message(message, database)
     jump_link,
     attachment_link
   )
+
+  insert_starboard_reactions message.server, channel_id, message_id, database
 end
 
 def parse_ragnarok_bot_message(message, database)
@@ -74,7 +108,8 @@ def parse_ragnarok_bot_message(message, database)
 
   channel_name = split[1] if star_count == 1
   channel_name = split[2] unless star_count == 1
-  channel_id = channel_name.gsub('<#', '').gsub('>', '')
+  channel_id_string = channel_name.gsub('<#', '').gsub('>', '')
+  channel_id = Integer(channel_id_string, exception: false)
 
   message_id = split[3] if star_count == 1
   message_id = split[4] unless star_count == 1
@@ -96,9 +131,9 @@ def parse_ragnarok_bot_message(message, database)
 
   database.insert_starboard(
     star_count,
-    message_id,
-    channel_id,
     server_id,
+    channel_id,
+    message_id,
     nil,
     content,
     message_time,
@@ -108,4 +143,6 @@ def parse_ragnarok_bot_message(message, database)
     nil,
     nil
   )
+
+  insert_starboard_reactions message.server, channel_id, message_id, database
 end

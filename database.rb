@@ -92,9 +92,9 @@ class Database
 
   def insert_starboard(
     star_count,
-    message_id,
-    channel_id,
     server_id,
+    channel_id,
+    message_id,
     starboard_message_id,
     content,
     message_timestamp,
@@ -104,12 +104,12 @@ class Database
     jump_link,
     attachment_link
   )
-    insert_command_sql = <<-SQL
+    insert_starboard_sql = <<-SQL
     INSERT OR REPLACE INTO starboard (
     star_count,
-    message_id,
-    channel_id,
     server_id,
+    channel_id,
+    message_id,
     starboard_message_id,
     content,
     message_timestamp,
@@ -121,11 +121,11 @@ class Database
     VALUES(?, ?, ?, ?, ?, ?, datetime(?), ?, ?, ?, ?, ?)
     SQL
 
-    @db.execute insert_command_sql, [
+    @db.execute insert_starboard_sql, [
       star_count,
-      message_id,
-      channel_id,
       server_id,
+      channel_id,
+      message_id,
       starboard_message_id,
       content,
       message_timestamp.strftime('%Y-%m-%d %H:%M:%S'),
@@ -134,6 +134,32 @@ class Database
       embed_image_url,
       jump_link,
       attachment_link
+    ]
+  end
+
+  def insert_starboard_reaction(
+    server_id,
+    channel_id,
+    message_id,
+    author_id,
+    user_id
+  )
+    insert_starboard_reaction_sql = <<-SQL
+    INSERT INTO starboard_reaction (
+    server_id,
+    channel_id,
+    message_id,
+    author_id,
+    reacted_by_id)
+    VALUES(?, ?, ?, ?, ?)
+    SQL
+
+    @db.execute insert_starboard_reaction_sql, [
+      server_id,
+      channel_id,
+      message_id,
+      author_id,
+      user_id
     ]
   end
 
@@ -161,6 +187,24 @@ class Database
     result[0]
   end
 
+  def get_top_five_user_messages(server_id, user_id)
+    select_top_five_user_messages = <<-SQL
+    SELECT
+    server_id,
+    channel_id,
+    message_id,
+    count(message_id) AS star_count
+    FROM starboard_reaction
+    WHERE server_id = ?
+    AND author_id = ?
+    GROUP BY message_id
+    ORDER BY count(message_id) DESC
+    LIMIT 5
+    SQL
+
+    @db.execute select_top_five_user_messages, [server_id, user_id]
+  end
+
   def get_starboard_message(server_id, message_id)
     select_starboard_message = <<-SQL
     SELECT
@@ -183,6 +227,32 @@ class Database
     return nil if result.empty?
 
     result[0]
+  end
+
+  def get_total_reaction_count(server_id)
+    result = @db.execute 'SELECT count(1) FROM starboard_reaction WHERE server_id = ?', [server_id]
+    return 0 if result.empty?
+
+    result[0]['count(1)']
+  end
+
+  def get_total_stars_given(server_id, user_id)
+    result = @db.execute 'SELECT count(1) FROM starboard_reaction WHERE server_id = ? AND reacted_by_id = ?', [server_id, user_id]
+    return 0 if result.empty?
+
+    result[0]['count(1)']
+  end
+
+  def get_total_stars_received(server_id, user_id)
+    result = @db.execute 'SELECT count(1) FROM starboard_reaction WHERE server_id = ? AND author_id = ?', [server_id, user_id]
+    return 0 if result.empty?
+
+    result[0]['count(1)']
+  end
+
+  def reset_starboard(server_id)
+    @db.execute 'DELETE FROM starboard WHERE server_id  = ?', [server_id]
+    @db.execute 'DELETE FROM starboard_reaction WHERE server_id  = ?', [server_id]
   end
 
   private

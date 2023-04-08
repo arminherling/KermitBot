@@ -310,6 +310,8 @@ bot.command :star, description: 'Starboard' do |event, *parameters|
   elsif parameters.count == 2 && parameters[0].casecmp('parse').zero?
     return nil unless bot.bot_application.owner.id == event.user.id
 
+    database.reset_starboard server_id
+
     found_channel = event.server.channels.find do |x|
       channel_tag = "<##{x.id}>"
       channel_tag.casecmp(parameters[1]).zero?
@@ -318,7 +320,7 @@ bot.command :star, description: 'Starboard' do |event, *parameters|
 
     next "#{parameters[1]} Is not a text channel." unless found_channel.text?
 
-    total = 0
+    total_messages = 0
     before_id = nil
 
     while true
@@ -328,7 +330,7 @@ bot.command :star, description: 'Starboard' do |event, *parameters|
       messages.each do |m|
         next unless m.author.bot_account?
 
-        total += 1
+        total_messages += 1
         case m.author.id
         when 235148962103951360
           parse_carl_bot_message m, database
@@ -340,7 +342,9 @@ bot.command :star, description: 'Starboard' do |event, *parameters|
       before_id = last.id
     end
 
-    puts "Total: #{total}"
+    total_reactions = database.get_total_reaction_count server_id
+
+    "Starboard messages: #{total_messages}\nStarboard reactions: #{total_reactions}"
   end
 end
 
@@ -352,7 +356,9 @@ bot.command :info, min_args: 0, max_args: 1, description: 'Shows information abo
   if mention.nil?
     member = event.author
     embed = create_embed_for_member_info member, server, database
-    event.channel.send_message '', false, embed
+    top_five = database.get_top_five_user_messages server.id, member.id
+    top_five_buttons = create_top_five_buttons_for_starboard_message top_five
+    event.channel.send_message '', false, embed, nil, nil, nil, top_five_buttons
 
     return nil
   end
@@ -361,7 +367,9 @@ bot.command :info, min_args: 0, max_args: 1, description: 'Shows information abo
     member_id = event.message.mentions[0].id
     member = server.member member_id
     embed = create_embed_for_member_info member, server, database
-    event.channel.send_message '', false, embed
+    top_five = database.get_top_five_user_messages server.id, member_id
+    top_five_buttons = create_top_five_buttons_for_starboard_message top_five
+    event.channel.send_message '', false, embed, nil, nil, nil, top_five_buttons
 
     return nil
   end
@@ -372,7 +380,9 @@ bot.command :info, min_args: 0, max_args: 1, description: 'Shows information abo
 
   unless found_member.nil?
     embed = create_embed_for_member_info found_member, server, database
-    event.channel.send_message '', false, embed
+    top_five = database.get_top_five_user_messages server.id, found_member.id
+    top_five_buttons = create_top_five_buttons_for_starboard_message top_five
+    event.channel.send_message '', false, embed, nil, nil, nil, top_five_buttons
 
     return nil
   end

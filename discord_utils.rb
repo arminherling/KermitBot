@@ -146,6 +146,8 @@ end
 def create_embed_for_member_info(member, server, database)
   avatar = "https://cdn.discordapp.com/avatars/#{member.id}/#{member.avatar_id}.webp?size=1024"
 
+  stars_given = database.get_total_stars_given server.id, member.id
+  stars_received = database.get_total_stars_received server.id, member.id
   total_commands = database.get_total_command_count member.id
   server_commands = database.get_server_command_count member.id, server.id
   top_five_commands = database.get_top_five_favorite_command member.id
@@ -157,8 +159,8 @@ def create_embed_for_member_info(member, server, database)
     color: 0x5cb200,
     author: Discordrb::Webhooks::EmbedAuthor.new(name: "#{member.username}:#{member.discriminator}", icon_url: avatar),
     fields: [
-      Discordrb::Webhooks::EmbedField.new(name: 'Stars given:', value: '-', inline: true),
-      Discordrb::Webhooks::EmbedField.new(name: 'Stars received:', value: '-', inline: true),
+      Discordrb::Webhooks::EmbedField.new(name: 'Stars given:', value: stars_given, inline: true),
+      Discordrb::Webhooks::EmbedField.new(name: 'Stars received:', value: stars_received, inline: true),
       Discordrb::Webhooks::EmbedField.new(name: 'Birthday:', value: '-', inline: true),
       Discordrb::Webhooks::EmbedField.new(name: 'Server commands:', value: server_commands, inline: true),
       Discordrb::Webhooks::EmbedField.new(name: 'Total commands:', value: total_commands, inline: true),
@@ -190,6 +192,18 @@ def create_button_for_starboard_message(data)
   view = Discordrb::Webhooks::View.new
   view.row do |row|
     row.button(label: 'Original message', style: :link, url: url)
+  end
+  view
+end
+
+def create_top_five_buttons_for_starboard_message(data)
+  view = Discordrb::Webhooks::View.new
+  view.row do |row|
+    data.each do |d|
+      star_count = d['star_count']
+      url = create_message_link d['server_id'], d['channel_id'], d['message_id']
+      row.button(label: "#{STAR} #{star_count}", style: :link, url: url)
+    end
   end
   view
 end

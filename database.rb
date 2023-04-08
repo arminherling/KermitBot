@@ -187,6 +187,23 @@ class Database
     result[0]
   end
 
+  def get_top_five_star_messages(server_id)
+    select_top_five_user_messages = <<-SQL
+    SELECT
+    server_id,
+    channel_id,
+    message_id,
+    count(message_id) AS star_count
+    FROM starboard_reaction
+    WHERE server_id = ?
+    GROUP BY message_id
+    ORDER BY count(message_id) DESC
+    LIMIT 5
+    SQL
+
+    @db.execute select_top_five_user_messages, [server_id]
+  end
+
   def get_top_five_user_messages(server_id, user_id)
     select_top_five_user_messages = <<-SQL
     SELECT
@@ -203,6 +220,36 @@ class Database
     SQL
 
     @db.execute select_top_five_user_messages, [server_id, user_id]
+  end
+
+  def get_top_five_star_receivers(server_id)
+    select_top_five_user_messages = <<-SQL
+    SELECT
+    author_id AS user_id,
+    count(message_id) AS star_count
+    FROM starboard_reaction
+    WHERE server_id = ?
+    GROUP BY author_id
+    ORDER BY count(message_id) DESC
+    LIMIT 5
+    SQL
+
+    @db.execute select_top_five_user_messages, [server_id]
+  end
+
+  def get_top_five_star_givers(server_id)
+    select_top_five_user_messages = <<-SQL
+    SELECT
+    reacted_by_id AS user_id,
+    count(message_id) AS star_count
+    FROM starboard_reaction
+    WHERE server_id = ?
+    GROUP BY reacted_by_id
+    ORDER BY count(message_id) DESC
+    LIMIT 5
+    SQL
+
+    @db.execute select_top_five_user_messages, [server_id]
   end
 
   def get_starboard_message(server_id, message_id)
@@ -227,6 +274,13 @@ class Database
     return nil if result.empty?
 
     result[0]
+  end
+
+  def get_total_starboard_message_count(server_id)
+    result = @db.execute 'SELECT count(1) FROM starboard WHERE server_id = ?', [server_id]
+    return 0 if result.empty?
+
+    result[0]['count(1)']
   end
 
   def get_total_reaction_count(server_id)

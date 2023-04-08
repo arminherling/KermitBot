@@ -294,6 +294,15 @@ bot.command :star, description: 'Starboard' do |event, *parameters|
     event.channel.send_message message_content, false, embed, nil, nil, nil, button
 
     return nil
+  elsif parameters.count == 1 && parameters[0].casecmp('top').zero?
+    total_messages = database.get_total_starboard_message_count server_id
+    total_reactions = database.get_total_reaction_count server_id
+    top_star_messages = database.get_top_five_star_messages server_id
+    top_star_givers = database.get_top_five_star_givers server_id
+    top_star_receivers = database.get_top_five_star_receivers server_id
+
+    embed = create_embed_for_top_starboard_messages total_messages, total_reactions, top_star_messages, top_star_givers, top_star_receivers
+    event.channel.send_message message_content, false, embed
   elsif parameters.count == 1
     message_id = Integer(parameters[0], exception: false)
     next 'Expected a message ID as parameter.' if message_id.nil?

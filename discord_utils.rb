@@ -186,6 +186,36 @@ def create_embed_for_starboard_message(data)
   )
 end
 
+def create_embed_for_top_starboard_messages(total_messages, total_reactions, top_star_messages, top_star_givers, top_star_receivers)
+  top_messages = []
+  top_star_messages.each do |m|
+    url = create_message_link m['server_id'], m['channel_id'], m['message_id']
+    top_messages.push "#{m['star_count']} ⭐: [#{m['message_id']}](#{url})"
+  end
+
+  top_givers = []
+  top_star_givers.each do |g|
+    top_givers.push "#{g['star_count']} ⭐: <@#{g['user_id']}>"
+  end
+
+  top_receivers = []
+  top_star_receivers.each do |r|
+    top_receivers.push "#{r['star_count']} ⭐: <@#{r['user_id']}>"
+  end
+
+  Discordrb::Webhooks::Embed.new(
+    color: 0x5cb200,
+    description: "#{total_messages} messages with a total of #{total_reactions} stars!",
+    thumbnail: Discordrb::Webhooks::EmbedThumbnail.new(url: 'https://cdn.discordapp.com/attachments/1085306581534658572/1094217203689213962/stars.png'), # star png
+    author: Discordrb::Webhooks::EmbedAuthor.new(name: 'Server Starboard'),
+    fields: [
+      Discordrb::Webhooks::EmbedField.new(name: 'Top messages:', value: top_messages.join("\n"), inline: false),
+      Discordrb::Webhooks::EmbedField.new(name: 'Top givers:', value: top_givers.join("\n"), inline: true),
+      Discordrb::Webhooks::EmbedField.new(name: 'Top receivers:', value: top_receivers.join("\n"), inline: true)
+    ]
+  )
+end
+
 def create_button_for_starboard_message(data)
   url = create_message_link data['server_id'], data['channel_id'], data['message_id']
 

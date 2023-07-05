@@ -172,7 +172,7 @@ bot.command :g, description: 'Shows the first 10 Google results for a topic.', u
 end
 
 bot.command :sql, help_available: false, description: 'Executes an SQL query.', usage: 'k.sql SELECT * FROM VERSIONS' do |event, *parameters|
-  return nil unless bot.bot_application.owner.id == event.user.id
+  return nil unless bot_owner? bot, event.user
 
   database.insert_command_usage event.author.id, event.server.id, 'sql', event.message.content
 
@@ -226,7 +226,7 @@ def eval_and_capture_stdout(code)
 end
 
 bot.command :eval, help_available: false, description: 'Evaluates a string as Ruby code.', usage: 'k.eval 2 + 2' do |event, *parameters|
-  return nil unless bot.bot_application.owner.id == event.user.id
+  return nil unless bot_owner? bot, event.user
 
   database.insert_command_usage event.author.id, event.server.id, 'eval', event.message.content
 
@@ -257,7 +257,7 @@ bot.command :eval, help_available: false, description: 'Evaluates a string as Ru
 end
 
 bot.command :chat, help_available: false, description: 'Various settings for the chatGPT bot' do |event, *parameters|
-  return nil unless bot.bot_application.owner.id == event.user.id
+  return nil unless bot_owner? bot, event.user
 
   database.insert_command_usage event.author.id, event.server.id, 'chat setting', event.message.content
 
@@ -317,7 +317,7 @@ bot.command :star, description: 'Starboard' do |event, *parameters|
 
     return nil
   elsif parameters.count == 2 && parameters[0].casecmp('parse').zero?
-    return nil unless bot.bot_application.owner.id == event.user.id
+    return nil unless bot_owner? bot, event.user
 
     database.reset_starboard server_id
 

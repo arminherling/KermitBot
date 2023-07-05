@@ -243,3 +243,15 @@ end
 def create_message_link(server_id, channel_id, message_id)
   "https://discord.com/channels/#{server_id}/#{channel_id}/#{message_id}"
 end
+
+def bot_owner?(bot, user)
+  bot.bot_application.owner.id == user.id
+end
+
+def server_owner?(user)
+  user.id == user.server.owner.id
+end
+
+def bot_or_server_owner?(bot, user)
+  bot_owner? bot, user or server_owner? user
+end

@@ -114,6 +114,11 @@ bot.command :g, description: 'Shows the first 10 Google results for a topic.', u
   end
 
   items = google_result['items']
+  if items.nil?
+    event.channel.send_message 'Hmmm I cant find anything!'
+    return nil
+  end
+
   current_item = 0
   total_items = items.length
 
